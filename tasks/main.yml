@@ -1,0 +1,42 @@
+ - name: install haproxy, ruby (for haproxyctl) with yum
+   yum:
+     name: "{{ item }}"
+     state: installed
+   with_items:
+     - haproxy
+     - ruby
+
+ - name: template haproxy.cfg
+   template:
+     src: haproxy.cfg
+     dest: /etc/haproxy/haproxy.cfg
+     mode: 644
+
+ - name: enable and start haproxy.service
+   service:
+     name: haproxy
+     enabled: yes
+     state: started
+
+ - name: fetch haproxyctl tarball
+   get_url:
+     url: https://github.com/flores/haproxyctl/archive/1.3.0.tar.gz
+     dest: /root/haproxyctl.tar.gz
+     mode: 0700
+
+ - name: create /usr/lib/haproxyctl
+   file:
+     path: /usr/lib/haproxyctl
+     state: directory
+
+ - name: unpack haproxyctl
+   command: tar xz --strip-components=1 -f /root/haproxyctl.tar.gz
+   args:
+     creates: /usr/lib/haproxyctl/haproxyctl
+     chdir: /usr/lib/haproxyctl/
+
+ - name: link haproxyctl
+   file:
+     src: /usr/lib/haproxyctl/haproxyctl
+     dest: /usr/bin/haproxyctl
+     state: link
